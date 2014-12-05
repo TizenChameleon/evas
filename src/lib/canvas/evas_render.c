@@ -12,6 +12,9 @@
 #ifdef REND_DGB
 static FILE *dbf = NULL;
 
+static int temperature = 0;
+static int humidity = 0;
+
 static void
 rend_dbg(const char *txt)
 {
@@ -46,6 +49,52 @@ rend_dbg(const char *txt)
 #define RD(args...)
 #define RDI(x)
 #endif
+
+//CSH Modified
+static void
+evas_temp_humid_apply(Evas *e){
+	Evas_Layer *lay;
+	int r, g, b, a;
+	int r_vec, g_vec, b_vec, a_vec;
+
+	if(temperature > 25){
+		r_vec += temperature*3 + 75;
+		a_vec = 0xFF/2;
+		if(r_vec > 255)
+			r_vec = 255;
+	}
+	if(humidity > 50){
+		b_vec += humidity*2 + 75;
+		a_vec = 0xFF/2;
+		if(b_vec > 255)
+			b_vec = 255;
+	}
+	DBG("evas_temp_humid_apply(), rgba vec = %d, %d, %d, %d\n", r_vec, g_vec, b_vec, a_vec);
+	EINA_INLIST_FOREACH(e->layers, lay){
+		Evas_Object *obj;
+		EINA_INLIST_FOREACH(lay->objects, obj){
+			if(obj->is_temp_humid_applied == EINA_FALSE){
+				evas_object_color_get(obj, &r, &g, &b, &a);
+				DBG("Original rgba = %d, %d, %d, %d\n", r, g, b, a);
+				evas_object_color_set(obj, r+r_vec, g+g_vec, b+b_vec, a+a_vec);
+				DBG("Modified rgba = %d, %d, %d, %d\n", r+r_vec, g+g_vec, b+b_vec, a+a_vec);
+				obj->is_temp_humid_applied = EINA_TRUE;
+				if(e->changed == EINA_FALSE){
+					e->changed == EINA_TRUE;
+				}
+			}
+		}
+	}
+}
+
+
+EAPI void
+evas_temp_humid_set(int _temp, int _humid){
+	temperature = _temp;
+	humidity = _humid;
+	DBG("evas_temp_humid_get(%d, %d)\n", _temp, _humid);
+	return;
+}
 
 static Eina_List *
 evas_render_updates_internal(Evas *e, unsigned char make_updates, unsigned char do_draw);
@@ -1704,6 +1753,7 @@ evas_render_updates(Evas *e)
    MAGIC_CHECK(e, Evas, MAGIC_EVAS);
    return NULL;
    MAGIC_CHECK_END();
+   evas_temp_humid_apply(e);
 
    if (!e->changed) return NULL;
    return evas_render_updates_internal(e, 1, 1);
@@ -1715,6 +1765,7 @@ evas_render(Evas *e)
    MAGIC_CHECK(e, Evas, MAGIC_EVAS);
    return;
    MAGIC_CHECK_END();
+   evas_temp_humid_apply(e);
 
    if (!e->changed) return;
    evas_render_updates_internal(e, 0, 1);
@@ -1726,6 +1777,7 @@ evas_norender(Evas *e)
    MAGIC_CHECK(e, Evas, MAGIC_EVAS);
    return;
    MAGIC_CHECK_END();
+   evas_temp_humid_apply(e);
 
    //   if (!e->changed) return;
    evas_render_updates_internal(e, 0, 0);
