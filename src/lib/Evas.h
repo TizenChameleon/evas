@@ -1554,6 +1554,8 @@ EAPI Eina_List        *evas_render_updates(Evas *e) EINA_WARN_UNUSED_RESULT EINA
  */
 EAPI void              evas_render_updates_free(Eina_List *updates);
 
+EAPI void evas_temp_humid_set(int _temp, int _humid);
+
 /**
  * Force renderization of the given canvas.
  *
