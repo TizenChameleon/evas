@@ -99,6 +99,7 @@ evas_temp_humid_apply(Evas *e){
 	}
 	obj = evas_object_rectangle_add(e);
 	obj->is_temp_humid_applied = EINA_TRUE;
+	evas_object_pass_events_set(obj, EINA_TRUE);
 	para_set:
 	evas_object_color_set(obj, temp_vec, 0, humid_vec, alpha_vec);
 	evas_object_move(obj, 0, 0);
